@@ -4,6 +4,8 @@
   "description": "PNAE-RCA V10 Enterprise Stable - Laravel e-administration platform",
   "require": {
     "php": "^8.4",
+    "barryvdh/laravel-dompdf": "^3.1",
+    "endroid/qr-code": "^6.1",
     "laravel/framework": "^13.0",
     "laravel/tinker": "^3.0"
   },

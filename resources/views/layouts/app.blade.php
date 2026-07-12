@@ -26,17 +26,58 @@
         <a href="#">Le PNAE</a>
         <a href="{{ route('contact') }}">Contact</a>
 
-        @auth
-            <a href="{{ route('citizen.dashboard') }}">Mon espace</a>
+       @auth
+    @php
+        $user = auth()->user();
 
-            <form method="POST" action="{{ route('logout') }}" class="logout-form">
-                @csrf
-                <button type="submit">Déconnexion</button>
-            </form>
-        @else
-            <a href="{{ route('login') }}">Connexion</a>
-            <a class="account-btn" href="{{ route('register') }}">Créer un compte</a>
-        @endauth
+        $dashboardRoute = match ($user->role) {
+            'admin' => 'admin.dashboard',
+            'agent', 'responsable' => 'agent.dashboard',
+            'citoyen' => 'citizen.dashboard',
+            default => 'dashboard',
+        };
+
+        $roleLabel = match ($user->role) {
+            'admin' => 'Administrateur',
+            'agent' => 'Agent public',
+            'responsable' => 'Responsable',
+            'citoyen' => 'Citoyen',
+            default => ucfirst($user->role),
+        };
+    @endphp
+
+    <a href="{{ route($dashboardRoute) }}" class="nav-space-link">
+        Mon espace
+    </a>
+
+    <div class="connected-user-box">
+        <span class="connected-user-role">
+            {{ $roleLabel }}
+        </span>
+
+        <strong>{{ $user->name }}</strong>
+
+        <small>{{ $user->email }}</small>
+    </div>
+
+    <form
+        method="POST"
+        action="{{ route('logout') }}"
+        class="logout-form"
+    >
+        @csrf
+
+        <button type="submit" class="logout-button">
+            Déconnexion
+        </button>
+    </form>
+@else
+    <a href="{{ route('login') }}">Connexion</a>
+
+    <a class="account-btn" href="{{ route('register') }}">
+        Créer un compte
+    </a>
+@endauth
     </nav>
 </header>
 

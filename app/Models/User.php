@@ -43,4 +43,8 @@ class User extends Authenticatable
     {
         return $this->hasMany(Application::class, 'assigned_to');
     }
+	public function payments()
+{
+    return $this->hasMany(Payment::class);
+}
 }

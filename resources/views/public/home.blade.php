@@ -44,19 +44,22 @@
     </div>
 </div>
 
-<section class="container text-center services-section">
-    
-    <section class="container text-center services-section">
+<section class="services-section">
+
     <h2>Services les plus demandés</h2>
-    <p>Accédez rapidement aux services publics disponibles</p>
 
-    <div class="row g-4 mt-3">
+    <p>
+        Accédez rapidement aux services publics disponibles
+    </p>
+
+    <div class="row">
         @foreach($ministries as $ministry)
-            <div class="col-md">
+            <div>
                 <div class="service-card">
-                    <div class="icon blue">🏛️</div>
 
-                    <h5>{{ $ministry->name }}</h5>
+                    <div class="icon">🏛️</div>
+
+                    <h3>{{ $ministry->name }}</h3>
 
                     <p>
                         {{ $ministry->procedures_count }}
@@ -66,10 +69,12 @@
                     <a href="{{ route('services.ministry', $ministry) }}">
                         Accéder au service →
                     </a>
+
                 </div>
             </div>
         @endforeach
     </div>
+
 </section>
  
 

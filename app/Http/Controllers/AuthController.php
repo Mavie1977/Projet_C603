@@ -51,66 +51,58 @@ class AuthController extends Controller
         'password' => ['required', 'string'],
     ]);
 
-    $remember = $request->boolean('remember');
-
-    if (!Auth::attempt($credentials, $remember)) {
+    if (! auth()->attempt($credentials, $request->boolean('remember'))) {
         return back()
             ->withErrors([
-                'email' => 'Email ou mot de passe incorrect.'
-            ])
-            ->onlyInput('email');
-    }
-
-    $user = Auth::user();
-
-    if (!$user->active) {
-        Auth::logout();
-
-        return back()
-            ->withErrors([
-                'email' => 'Votre compte est désactivé.'
+                'email' => 'Adresse email ou mot de passe incorrect.',
             ])
             ->onlyInput('email');
     }
 
     $request->session()->regenerate();
 
-    switch ($user->role) {
-
-        case 'admin':
-            return redirect()->route('admin.dashboard');
-
-        case 'agent':
-            return redirect()->route('agent.dashboard');
-
-        case 'responsable':
-            return redirect()->route('agent.dashboard');
-
-        case 'citoyen':
-        default:
-            return redirect()->route('citizen.dashboard');
-    }
-}
-
-    public function redirectDashboard()
-    {
-        return match (auth()->user()->role) {
-            'admin' => redirect()->route('admin.dashboard'),
-            'agent' => redirect()->route('agent.dashboard'),
-            'responsable' => redirect()->route('agent.dashboard'),
-            default => redirect()->route('citizen.dashboard'),
-        };
-    }
-
-    public function logout(Request $request)
-    {
-        Auth::logout();
+    if (! auth()->user()->active) {
+        auth()->logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()
-            ->route('home')
-            ->with('success', 'Vous êtes déconnecté avec succès.');
+        return back()->withErrors([
+            'email' => 'Ce compte est désactivé.',
+        ]);
     }
+
+    return $this->redirectAuthenticatedUser();
+}
+
+public function redirectDashboard()
+{
+    return $this->redirectAuthenticatedUser();
+}
+
+private function redirectAuthenticatedUser()
+{
+    return match (auth()->user()->role) {
+        'admin' => redirect()->route('admin.dashboard'),
+
+        'agent',
+        'responsable' => redirect()->route('agent.dashboard'),
+
+        'citoyen' => redirect()->route('citizen.dashboard'),
+
+        default => redirect()->route('home')
+            ->with('warning', 'Rôle utilisateur non reconnu.'),
+    };
+}
+public function logout(Request $request)
+{
+    auth()->logout();
+
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+
+    return redirect()
+        ->route('home')
+        ->with('success', 'Vous êtes déconnecté avec succès.');
+}
 }

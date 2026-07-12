@@ -14,6 +14,7 @@ class Application extends Model
         'payment_status',
         'priority',
         'message',
+        'assigned_to',
     ];
 
     public function user()
@@ -34,5 +35,23 @@ class Application extends Model
     public function workflowLogs()
     {
         return $this->hasMany(WorkflowLog::class);
+    }
+
+    public function assignedAgent()
+    {
+        return $this->belongsTo(User::class, 'assigned_to');
+    }
+	public function payments()
+    {
+    return $this->hasMany(Payment::class);
+    }
+
+    public function latestPayment()
+    {
+    return $this->hasOne(Payment::class)->latestOfMany();
+    }
+	public function officialDocument()
+    {
+    return $this->hasOne(OfficialDocument::class);
     }
 }
