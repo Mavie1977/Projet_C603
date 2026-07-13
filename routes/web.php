@@ -4,7 +4,8 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PublicController;
-
+use App\Http\Controllers\Admin\NationalDashboardController;
+use App\Http\Controllers\Admin\SearchController;
 use App\Http\Controllers\CitizenController as CitizenDashboardController;
 use App\Http\Controllers\Citizen\ApplicationController as CitizenApplicationController;
 
@@ -252,14 +253,37 @@ Route::prefix('admin')
     ->name('admin.')
     ->middleware(['auth', 'role:admin'])
     ->group(function () {
+
         Route::get(
             '/dashboard',
             [AdminDashboardController::class, 'index']
         )->name('dashboard');
+
+        Route::get(
+            '/recherche',
+            [SearchController::class, 'index']
+        )->name('search.index');
+
+        Route::get(
+            '/journal',
+            [AdminAuditController::class, 'index']
+        )->name('audit.index');
+
+        Route::get(
+            '/supervision',
+            [NationalDashboardController::class, 'index']
+        )->name('supervision.index');
+
+    });
 		Route::get(
             '/recherche',
             [AdminSearchController::class, 'index']
        )->name('search.index');
+	   
+	   Route::prefix('admin')
+              ->name('admin.')
+              ->middleware(['auth', 'role:admin'])
+              ->group(function () {
 	   
 	   Route::get(
            '/demandes/{application}',
@@ -391,8 +415,5 @@ Route::prefix('admin')
             [AdminSettingController::class, 'update']
         )->name('settings.update');
 
-        Route::get(
-            '/journal',
-            [AdminAuditController::class, 'index']
-        )->name('audit.index');
+		
     });

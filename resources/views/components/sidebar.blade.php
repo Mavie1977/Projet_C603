@@ -93,6 +93,18 @@
             </a>
 
             <div class="sidebar-group-title">Supervision</div>
+			
+			<a
+    href="{{ route('admin.supervision.index') }}"
+    class="sidebar-link {{
+        request()->routeIs('admin.supervision.*')
+            ? 'active'
+            : ''
+    }}"
+>
+    <span class="sidebar-icon">🛰️</span>
+    <span>Supervision nationale</span>
+</a>
 
             <a
                 href="{{ route('admin.audit.index') }}"
