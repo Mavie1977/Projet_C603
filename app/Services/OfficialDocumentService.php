@@ -50,7 +50,18 @@ class OfficialDocumentService
                     $officialNumber,
                     $verificationToken
                 );
-
+$documentFingerprint = hash(
+    'sha256',
+    implode('|', [
+        $application->id,
+        $application->reference,
+        $application->user_id,
+        $application->procedure_id,
+        $officialNumber,
+        $verificationToken,
+        now()->toIso8601String(),
+    ])
+);
                 $officialDocument = OfficialDocument::create([
                     'application_id' => $application->id,
                     'generated_by' => auth()->id(),
@@ -60,7 +71,7 @@ class OfficialDocumentService
                         ?? 'Document administratif',
                     'file_path' => 'pending',
                     'mime_type' => 'application/pdf',
-                    'hash_sha256' => str_repeat('0', 64),
+                    'hash_sha256' => $documentFingerprint,
                     'signature_code' => $signatureCode,
                     'status' => 'actif',
                     'issued_at' => now(),
@@ -90,7 +101,7 @@ if (file_exists($logoPath)) {
         base64_encode(file_get_contents($logoPath))
     );
 }
-                $pdf = Pdf::loadView(
+               $pdf = Pdf::loadView(
     'pdf.official-document',
     [
         'application' => $application,
@@ -98,12 +109,28 @@ if (file_exists($logoPath)) {
         'verificationUrl' => $verificationUrl,
         'qrCodeDataUri' => $qrCodeDataUri,
         'logoDataUri' => $logoDataUri,
+
+        'signatoryName' => config(
+            'pnae.document.signatory_name'
+        ),
+
+        'signatoryTitle' => config(
+            'pnae.document.signatory_title'
+        ),
+
+        'signatoryInstitution' => config(
+            'pnae.document.institution'
+        ),
+
+        'documentLocation' => config(
+            'pnae.document.location'
+        ),
     ]
 )
     ->setPaper('a4', 'portrait')
     ->setOption('defaultFont', 'DejaVu Sans');
 
-                $pdfBinary = $pdf->output();
+               $pdfBinary = $pdf->output();
 
                 $directory = sprintf(
                     'official-documents/%s',
@@ -122,12 +149,11 @@ if (file_exists($logoPath)) {
                     $pdfBinary
                 );
 
-                $hash = hash('sha256', $pdfBinary);
-
+                $fileHash = hash('sha256', $pdfBinary);
                 $officialDocument->update([
-                    'file_path' => $storedPath,
-                    'hash_sha256' => $hash,
-                ]);
+                         'file_path' => $storedPath,
+                         'file_hash_sha256' => $fileHash,
+                     ]);
 
                 AuditService::log(
                     'Génération de document officiel',
@@ -137,7 +163,7 @@ if (file_exists($logoPath)) {
                         'official_number' => $officialNumber,
                         'application_reference' =>
                             $application->reference,
-                        'hash_sha256' => $hash,
+                        'file_hash_sha256' => $fileHash,
                     ]
                 );
 
@@ -170,18 +196,20 @@ if (file_exists($logoPath)) {
             ]);
         }
 
-        $invalidDocuments = $application->documents
-            ->filter(
-                fn ($document) =>
-                    $document->status !== 'valide'
-            );
+        
 
-        if ($invalidDocuments->isNotEmpty()) {
-            throw ValidationException::withMessages([
-                'document' =>
-                    'Toutes les pièces jointes doivent être validées.',
-            ]);
-        }
+$invalidDocuments = $application->documents
+    ->filter(
+        fn ($document) =>
+            $document->status !== 'valide'
+    );
+
+if ($invalidDocuments->isNotEmpty()) {
+    throw ValidationException::withMessages([
+        'document' =>
+            'Toutes les pièces jointes présentes doivent être validées.',
+    ]);
+}
 
         $fee = (float) ($application->procedure->fee ?? 0);
 

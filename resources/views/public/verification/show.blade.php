@@ -15,37 +15,41 @@
 
     <div class="verification-card">
 
-        @if(
-            $officialDocument->isActive()
-            && $fileExists
-            && $hashValid
-        )
-            <div class="verification-result verification-valid">
-                <span>✅</span>
+        @php
+    $documentAuthentic =
+        $officialDocument->isActive()
+        && $fileExists
+        && $hashValid;
+@endphp
 
-                <div>
-                    <h2>Document authentique</h2>
+@if($documentAuthentic)
+    <div class="verification-result verification-valid">
+        <span>✅</span>
 
-                    <p>
-                        Le document existe, son empreinte est conforme et
-                        il n’a pas été révoqué.
-                    </p>
-                </div>
-            </div>
-        @else
-            <div class="verification-result verification-invalid">
-                <span>⛔</span>
+        <div>
+            <h2>Document authentique</h2>
 
-                <div>
-                    <h2>Document non valide</h2>
+            <p>
+                Le document est enregistré, actif et son empreinte
+                numérique correspond au fichier officiel conservé
+                par la plateforme.
+            </p>
+        </div>
+    </div>
+@else
+    <div class="verification-result verification-invalid">
+        <span>⛔</span>
 
-                    <p>
-                        Le document est introuvable, révoqué ou son contenu
-                        ne correspond plus à l’empreinte enregistrée.
-                    </p>
-                </div>
-            </div>
-        @endif
+        <div>
+            <h2>Document non valide</h2>
+
+            <p>
+                Le document est révoqué, introuvable ou son intégrité
+                numérique ne peut pas être confirmée.
+            </p>
+        </div>
+    </div>
+@endif
 
         <dl class="verification-details">
             <div>

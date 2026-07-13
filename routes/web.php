@@ -34,6 +34,27 @@ Route::get(
 )
     ->middleware('signed')
     ->name('verification.documents.show');
+	Route::get(
+    '/verification',
+    [VerificationController::class, 'index']
+)->name('verification.index');
+
+Route::post(
+    '/verification',
+    [VerificationController::class, 'search']
+)->name('verification.search');
+
+Route::get(
+    '/verification/resultat/{officialDocument}',
+    [VerificationController::class, 'publicShow']
+)->name('verification.documents.public');
+
+Route::get(
+    '/verification/document/{officialDocument}',
+    [VerificationController::class, 'show']
+)
+    ->middleware('signed')
+    ->name('verification.documents.show');
 	
 /*
 |--------------------------------------------------------------------------
@@ -140,7 +161,19 @@ Route::prefix('citoyen')
              '/documents-officiels/{officialDocument}/telecharger',
              [CitizenOfficialDocumentController::class, 'download']
              )->name('official-documents.download');
+			 
+			 Route::prefix('citoyen')
+                   ->name('citizen.')
+                   ->middleware(['auth', 'role:citoyen'])
+                   ->group(function () {
+
+        Route::get(
+            '/documents-officiels/{officialDocument}/telecharger',
+            [CitizenOfficialDocumentController::class, 'download']
+        )->name('official-documents.download');
+    
     });
+	});
 
 /*
 |--------------------------------------------------------------------------
@@ -193,12 +226,22 @@ Route::prefix('agent')
             [AgentOfficialDocumentController::class, 'store']
             )->name('official-documents.store');
 
-Route::get(
-    '/documents-officiels/{officialDocument}/telecharger',
-    [AgentOfficialDocumentController::class, 'download']
-)->name('official-documents.download');
-    });
+       Route::get(
+           '/documents-officiels/{officialDocument}/telecharger',
+           [AgentOfficialDocumentController::class, 'download']
+           )->name('official-documents.download');
 
+      Route::prefix('agent')
+           ->name('agent.')
+           ->middleware(['auth', 'role:agent,responsable'])
+           ->group(function () {
+
+        Route::get(
+            '/documents-officiels/{officialDocument}/telecharger',
+            [AgentOfficialDocumentController::class, 'download']
+        )->name('official-documents.download');
+    });
+});
 /*
 |--------------------------------------------------------------------------
 | Administration

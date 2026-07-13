@@ -3567,3 +3567,305 @@ a.executive-stat-card:hover {
         text-align: left;
     }
 }
+.verification-search-card {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 30px;
+    background: #ffffff;
+    border: 1px solid #dce4ef;
+    border-radius: 15px;
+    box-shadow: 0 12px 30px rgba(7, 27, 68, 0.09);
+}
+
+.verification-search-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 15px;
+}
+
+.verification-search-form .form-group {
+    margin: 0;
+}
+
+@media (max-width: 620px) {
+    .verification-search-form {
+        grid-template-columns: 1fr;
+    }
+
+    .verification-search-form .component-action-button {
+        width: 100%;
+    }
+}
+.application-payment-action {
+    margin-top: 7px;
+}
+
+.btn-payment-primary,
+.btn-payment-secondary,
+.btn-payment-success,
+.btn-payment-warning {
+    display: inline-block;
+    padding: 7px 10px;
+    font-size: 11px;
+    font-weight: 800;
+    text-decoration: none;
+    border-radius: 7px;
+    white-space: nowrap;
+}
+
+.btn-payment-primary,
+.btn-payment-warning {
+    color: #111827;
+    background: #ffcd00;
+}
+
+.btn-payment-secondary {
+    color: #073b88;
+    background: #ffffff;
+    border: 1px solid #9eb5d7;
+}
+
+.btn-payment-success {
+    color: #ffffff;
+    background: #079447;
+}
+
+.payment-warning {
+    display: block;
+    margin-top: 5px;
+    color: #b42318;
+    font-size: 9px;
+}
+/* =========================================================
+   MES DEMANDES CITOYEN
+   ========================================================= */
+
+.page-header {
+    margin-bottom: 24px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.page-header h1 {
+    margin: 4px 0 6px;
+    color: #073b88;
+    font-size: 34px;
+    line-height: 1.15;
+}
+
+.page-header p {
+    margin: 0;
+    color: #637087;
+}
+
+.page-kicker {
+    color: #d21034;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 1px;
+}
+
+.page-header-actions {
+    padding-top: 12px;
+}
+
+.table-card {
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #dce4ef;
+    border-radius: 14px;
+    box-shadow: 0 10px 26px rgba(7, 27, 68, 0.07);
+}
+
+.table-card-header {
+    padding: 22px 24px 14px;
+}
+
+.table-card-header h2 {
+    margin: 0;
+    color: #073b88;
+    font-size: 22px;
+}
+
+.table-card-header p {
+    margin: 5px 0 0;
+    color: #6b778b;
+    font-size: 12px;
+}
+
+.citizen-applications-table {
+    margin: 0;
+}
+
+.application-reference {
+    color: #071b44;
+    overflow-wrap: anywhere;
+}
+
+.payment-cell {
+    min-width: 145px;
+}
+
+.application-payment-action {
+    margin-top: 8px;
+}
+
+.btn-table-warning,
+.btn-table-secondary,
+.btn-table-success {
+    display: inline-block;
+    padding: 7px 10px;
+    font-size: 10px;
+    font-weight: 900;
+    text-decoration: none;
+    white-space: nowrap;
+    border-radius: 7px;
+}
+
+.btn-table-warning {
+    color: #111827;
+    background: #ffcd00;
+}
+
+.btn-table-secondary {
+    color: #073b88;
+    background: #ffffff;
+    border: 1px solid #9eb5d7;
+}
+
+.btn-table-success {
+    color: #ffffff;
+    background: #079447;
+}
+
+.payment-information {
+    margin-top: 6px;
+    display: block;
+    color: #69758a;
+    font-size: 9px;
+}
+
+.documents-count {
+    display: inline-flex;
+    min-height: 27px;
+    align-items: center;
+    padding: 5px 9px;
+    color: #073b88;
+    font-size: 10px;
+    font-weight: 900;
+    background: #e8f0ff;
+    border-radius: 20px;
+}
+
+.status-preparation {
+    display: inline-flex;
+    padding: 6px 9px;
+    color: #765000;
+    font-size: 10px;
+    font-weight: 900;
+    background: #fff4d2;
+    border-radius: 20px;
+}
+
+.application-documents-row > td {
+    padding: 0 !important;
+    background: #f7f9fd;
+}
+
+.citizen-documents-block {
+    padding: 20px;
+    border-left: 4px solid #ffcd00;
+}
+
+.citizen-documents-heading {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.citizen-documents-heading h3 {
+    margin: 0;
+    color: #073b88;
+    font-size: 17px;
+}
+
+.citizen-documents-heading p {
+    margin: 4px 0 0;
+    color: #718096;
+    font-size: 11px;
+}
+
+.documents-reference {
+    color: #68758a;
+    font-size: 10px;
+}
+
+.citizen-documents-table {
+    margin: 0;
+}
+
+.citizen-documents-table thead th {
+    background: #174b95;
+}
+
+.citizen-document-note summary {
+    color: #073b88;
+    font-size: 10px;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.citizen-document-note p {
+    margin: 7px 0 0;
+    padding: 9px;
+    color: #704e00;
+    font-size: 11px;
+    line-height: 1.45;
+    background: #fff6dc;
+    border-radius: 6px;
+}
+
+.empty-state {
+    padding: 50px 24px;
+    text-align: center;
+}
+
+.empty-state-icon {
+    margin-bottom: 12px;
+    font-size: 40px;
+}
+
+.empty-state h3 {
+    margin: 0 0 8px;
+    color: #073b88;
+}
+
+.empty-state p {
+    margin: 0 0 20px;
+    color: #68758a;
+}
+
+@media (max-width: 800px) {
+    .page-header {
+        flex-direction: column;
+    }
+
+    .page-header-actions {
+        width: 100%;
+        padding-top: 0;
+    }
+
+    .page-header-actions .btn-rca-primary {
+        width: 100%;
+        text-align: center;
+    }
+
+    .citizen-documents-heading {
+        flex-direction: column;
+    }
+}

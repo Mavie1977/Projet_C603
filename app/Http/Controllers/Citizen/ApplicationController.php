@@ -12,22 +12,22 @@ use Illuminate\Http\Request;
 class ApplicationController extends Controller
 {
     public function index()
-    {
-        $applications = Application::with([
-            'procedure.ministry',
-            'documents',
-            'latestPayment',
-			'officialDocument',
-        ])
-            ->where('user_id', auth()->id())
-            ->latest()
-            ->get();
+{
+    $applications = Application::with([
+        'procedure.ministry',
+        'documents',
+        'latestPayment',
+        'officialDocument',
+    ])
+        ->where('user_id', auth()->id())
+        ->latest()
+        ->get();
 
-        return view(
-            'citizen.applications.index',
-            compact('applications')
-        );
-    }
+    return view(
+        'citizen.applications.index',
+        compact('applications')
+    );
+}
 
     public function create(Request $request)
     {
