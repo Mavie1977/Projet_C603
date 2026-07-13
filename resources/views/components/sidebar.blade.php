@@ -105,6 +105,22 @@
     <span class="sidebar-icon">🛰️</span>
     <span>Supervision nationale</span>
 </a>
+<a
+    href="{{ route('admin.users.index') }}"
+    class="sidebar-link {{
+        request()->routeIs('admin.users.*')
+            ? 'active'
+            : ''
+    }}"
+>
+    <span class="sidebar-icon">👥</span>
+
+    <span>
+        {{ auth()->user()->isResponsable()
+            ? 'Mes agents'
+            : 'Utilisateurs' }}
+    </span>
+</a>
 
             <a
                 href="{{ route('admin.audit.index') }}"

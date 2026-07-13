@@ -6,6 +6,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\Admin\NationalDashboardController;
 use App\Http\Controllers\Admin\SearchController;
+use App\Http\Controllers\Admin\NationalReportController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\CitizenController as CitizenDashboardController;
 use App\Http\Controllers\Citizen\ApplicationController as CitizenApplicationController;
 
@@ -274,7 +276,41 @@ Route::prefix('admin')
             [NationalDashboardController::class, 'index']
         )->name('supervision.index');
 
+
+       Route::get(
+        '/supervision/data',
+        [NationalDashboardController::class, 'data']
+       )->name('supervision.data');
+	   
+	   Route::get(
+        '/supervision/rapport/pdf',
+        [NationalReportController::class, 'pdf']
+        )->name('supervision.report.pdf');
+
+     Route::get(
+        '/supervision/rapport/excel',
+        [NationalReportController::class, 'excel']
+        )->name('supervision.report.excel');
+		
+    Route::resource('utilisateurs', UserController::class)
+    ->parameters([
+        'utilisateurs' => 'user',
+    ])
+    ->names('users');
+
+    Route::patch(
+    '/utilisateurs/{user}/activation',
+    [UserController::class, 'toggle']
+   )->name('users.toggle');
+
+   Route::post(
+    '/utilisateurs/{user}/mot-de-passe',
+    [UserController::class, 'resetPassword']
+    )->name('users.reset-password');
+
     });
+	
+
 		Route::get(
             '/recherche',
             [AdminSearchController::class, 'index']

@@ -37,6 +37,16 @@ class AuthController extends Controller
             'active' => true,
         ]);
 
+       $user = User::create([
+           'name' => $validated['name'],
+           'email' => $validated['email'],
+           'phone' => $validated['phone'] ?? null,
+           'password' => $validated['password'],
+           'role' => User::ROLE_CITOYEN,
+           'active' => true,
+           'ministry_id' => null,
+      ]);
+
         Auth::login($user);
 
         return redirect()
@@ -46,31 +56,30 @@ class AuthController extends Controller
 
     public function login(Request $request)
 {
-    $credentials = $request->validate([
+    $validated = $request->validate([
         'email' => ['required', 'email'],
         'password' => ['required', 'string'],
     ]);
 
-    if (! auth()->attempt($credentials, $request->boolean('remember'))) {
+    $credentials = [
+        'email' => $validated['email'],
+        'password' => $validated['password'],
+        'active' => true,
+    ];
+
+    if (! auth()->attempt(
+        $credentials,
+        $request->boolean('remember')
+    )) {
         return back()
+            ->withInput($request->only('email'))
             ->withErrors([
-                'email' => 'Adresse email ou mot de passe incorrect.',
-            ])
-            ->onlyInput('email');
+                'email' =>
+                    'Adresse email, mot de passe incorrect ou compte désactivé.',
+            ]);
     }
 
     $request->session()->regenerate();
-
-    if (! auth()->user()->active) {
-        auth()->logout();
-
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return back()->withErrors([
-            'email' => 'Ce compte est désactivé.',
-        ]);
-    }
 
     return $this->redirectAuthenticatedUser();
 }

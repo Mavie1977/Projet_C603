@@ -12,6 +12,8 @@ use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use App\Models\AuditLog;
+use Illuminate\Support\Facades\Cache;
 
 class NationalDashboardService
 {
@@ -19,20 +21,35 @@ class NationalDashboardService
      * Ensemble des données nécessaires au tableau de bord national.
      */
     public function getDashboardData(): array
-    {
-        return [
-            'summary' => $this->getSummary(),
-            'applicationStatuses' => $this->getApplicationStatuses(),
-            'paymentSummary' => $this->getPaymentSummary(),
-            'monthlyApplications' => $this->getMonthlyApplications(),
-            'monthlyPayments' => $this->getMonthlyPayments(),
-            'ministryPerformance' => $this->getMinistryPerformance(),
-            'alerts' => $this->getOperationalAlerts(),
-            'recentPayments' => $this->getRecentPayments(),
-            'recentDocuments' => $this->getRecentOfficialDocuments(),
-            'systemHealth' => $this->getSystemHealth(),
-        ];
-    }
+{
+    return Cache::remember(
+        'pnae:national-dashboard',
+        now()->addSeconds(30),
+        function (): array {
+            return [
+                'summary' => $this->getSummary(),
+                'applicationStatuses' => $this->getApplicationStatuses(),
+                'paymentSummary' => $this->getPaymentSummary(),
+                'monthlyApplications' => $this->getMonthlyApplications(),
+                'monthlyPayments' => $this->getMonthlyPayments(),
+                'ministryPerformance' => $this->getMinistryPerformance(),
+                'alerts' => $this->getOperationalAlerts(),
+                'recentPayments' => $this->getRecentPayments(),
+                'recentDocuments' => $this->getRecentOfficialDocuments(),
+                'systemHealth' => $this->getSystemHealth(),
+
+                // Nouvelles données Phase 10.1
+                'nationalScore' => $this->getNationalScore(),
+                'averageProcessing' => $this->getAverageProcessing(),
+                'topProcedures' => $this->getTopProcedures(),
+                'monthlyObjective' => $this->getMonthlyObjective(),
+                'activityHeatmap' => $this->getActivityHeatmap(),
+                'recentActivity' => $this->getRecentActivity(),
+                'securityAudit' => $this->getSecurityAudit(),
+            ];
+        }
+    );
+}
 
     /**
      * Indicateurs principaux.
@@ -530,4 +547,309 @@ class NationalDashboardService
             ],
         ];
     }
+	private function getNationalScore(): array
+{
+    $total = Application::count();
+
+    $validated = Application::whereIn(
+        'status',
+        ['validee', 'terminee']
+    )->count();
+
+    $rejected = Application::where(
+        'status',
+        'rejetee'
+    )->count();
+
+    $paidRequired = Application::query()
+        ->whereHas('procedure', function ($query) {
+            $query->where('fee', '>', 0);
+        })
+        ->count();
+
+    $paid = Application::query()
+        ->whereHas('procedure', function ($query) {
+            $query->where('fee', '>', 0);
+        })
+        ->where('payment_status', 'paye')
+        ->count();
+
+    $documentsExpected = Application::whereIn(
+        'status',
+        ['validee', 'terminee']
+    )->count();
+
+    $documentsGenerated = Schema::hasTable('official_documents')
+        ? OfficialDocument::count()
+        : 0;
+
+    $validationRate = $total > 0
+        ? ($validated / $total) * 100
+        : 100;
+
+    $rejectionRate = $total > 0
+        ? ($rejected / $total) * 100
+        : 0;
+
+    $paymentRate = $paidRequired > 0
+        ? ($paid / $paidRequired) * 100
+        : 100;
+
+    $documentRate = $documentsExpected > 0
+        ? min(
+            100,
+            ($documentsGenerated / $documentsExpected) * 100
+        )
+        : 100;
+
+    $score = round(
+        ($validationRate * 0.40)
+        + ($paymentRate * 0.25)
+        + ($documentRate * 0.25)
+        + ((100 - $rejectionRate) * 0.10),
+        1
+    );
+
+    return [
+        'score' => min(100, max(0, $score)),
+        'validation_rate' => round($validationRate, 1),
+        'payment_rate' => round($paymentRate, 1),
+        'document_rate' => round($documentRate, 1),
+        'rejection_rate' => round($rejectionRate, 1),
+        'label' => match (true) {
+            $score >= 90 => 'Excellente',
+            $score >= 75 => 'Bonne',
+            $score >= 60 => 'À renforcer',
+            default => 'Critique',
+        },
+    ];
+}
+private function getAverageProcessing(): array
+{
+    $globalHours = Application::query()
+        ->whereIn('status', ['validee', 'terminee'])
+        ->selectRaw(
+            'AVG(EXTRACT(EPOCH FROM (updated_at - created_at)) / 3600) AS average_hours'
+        )
+        ->value('average_hours');
+
+    $byMinistry = DB::table('applications')
+        ->join(
+            'procedures',
+            'procedures.id',
+            '=',
+            'applications.procedure_id'
+        )
+        ->join(
+            'ministries',
+            'ministries.id',
+            '=',
+            'procedures.ministry_id'
+        )
+        ->whereIn(
+            'applications.status',
+            ['validee', 'terminee']
+        )
+        ->select(
+            'ministries.id',
+            'ministries.name'
+        )
+        ->selectRaw(
+            'AVG(EXTRACT(EPOCH FROM (applications.updated_at - applications.created_at)) / 3600) AS average_hours'
+        )
+        ->groupBy(
+            'ministries.id',
+            'ministries.name'
+        )
+        ->orderBy('average_hours')
+        ->get()
+        ->map(function ($row) {
+            $hours = round((float) $row->average_hours, 1);
+
+            return [
+                'id' => $row->id,
+                'name' => $row->name,
+                'hours' => $hours,
+                'days' => round($hours / 24, 1),
+            ];
+        });
+
+    $hours = round((float) ($globalHours ?? 0), 1);
+
+    return [
+        'global_hours' => $hours,
+        'global_days' => round($hours / 24, 1),
+        'by_ministry' => $byMinistry,
+    ];
+}
+
+private function getTopProcedures(): Collection
+{
+    return Procedure::query()
+        ->with('ministry')
+        ->withCount('applications')
+        ->orderByDesc('applications_count')
+        ->limit(10)
+        ->get();
+}
+
+private function getMonthlyObjective(): array
+{
+    $applicationTarget = max(
+        1,
+        (int) env('PNAE_MONTHLY_APPLICATION_TARGET', 100)
+    );
+
+    $revenueTarget = max(
+        1,
+        (int) env('PNAE_MONTHLY_REVENUE_TARGET', 500000)
+    );
+
+    $applications = Application::where(
+        'created_at',
+        '>=',
+        now()->startOfMonth()
+    )->count();
+
+    $revenue = Schema::hasTable('payments')
+        ? (float) Payment::where('status', 'paye')
+            ->where('paid_at', '>=', now()->startOfMonth())
+            ->sum('amount')
+        : 0;
+
+    return [
+        'applications' => [
+            'target' => $applicationTarget,
+            'actual' => $applications,
+            'percentage' => min(
+                100,
+                round(($applications / $applicationTarget) * 100, 1)
+            ),
+        ],
+
+        'revenue' => [
+            'target' => $revenueTarget,
+            'actual' => $revenue,
+            'percentage' => min(
+                100,
+                round(($revenue / $revenueTarget) * 100, 1)
+            ),
+        ],
+    ];
+}
+
+private function getActivityHeatmap(): array
+{
+    $start = now()
+        ->subDays(34)
+        ->startOfDay();
+
+    $rows = Application::query()
+        ->selectRaw("TO_CHAR(created_at, 'YYYY-MM-DD') AS activity_date")
+        ->selectRaw('COUNT(*) AS total')
+        ->where('created_at', '>=', $start)
+        ->groupBy('activity_date')
+        ->pluck('total', 'activity_date');
+
+    $days = [];
+
+    for ($index = 0; $index < 35; $index++) {
+        $date = $start->copy()->addDays($index);
+        $key = $date->format('Y-m-d');
+        $total = (int) ($rows[$key] ?? 0);
+
+        $days[] = [
+            'date' => $key,
+            'label' => $date
+                ->locale('fr')
+                ->translatedFormat('D d M'),
+            'total' => $total,
+            'level' => match (true) {
+                $total === 0 => 0,
+                $total <= 2 => 1,
+                $total <= 5 => 2,
+                $total <= 10 => 3,
+                default => 4,
+            },
+        ];
+    }
+
+    return $days;
+}
+
+private function getRecentActivity(): Collection
+{
+    if (! Schema::hasTable('audit_logs')) {
+        return collect();
+    }
+
+    return DB::table('audit_logs')
+        ->leftJoin(
+            'users',
+            'users.id',
+            '=',
+            'audit_logs.user_id'
+        )
+        ->select([
+            'audit_logs.id',
+            'audit_logs.action',
+            'audit_logs.entity',
+            'audit_logs.entity_id',
+            'audit_logs.ip_address',
+            'audit_logs.created_at',
+            'users.name as user_name',
+        ])
+        ->latest('audit_logs.created_at')
+        ->limit(12)
+        ->get();
+}
+
+private function getSecurityAudit(): array
+{
+    if (! Schema::hasTable('audit_logs')) {
+        return [
+            'failed_logins' => 0,
+            'cancelled_payments' => 0,
+            'revoked_documents' => 0,
+            'critical_errors' => 0,
+        ];
+    }
+
+    $since = now()->subDays(30);
+
+    return [
+        'failed_logins' => DB::table('audit_logs')
+            ->where('created_at', '>=', $since)
+            ->where(function ($query) {
+                $query
+                    ->whereRaw('LOWER(action) LIKE ?', ['%connexion%échou%'])
+                    ->orWhereRaw('LOWER(action) LIKE ?', ['%login%fail%']);
+            })
+            ->count(),
+
+        'cancelled_payments' => Schema::hasTable('payments')
+            ? Payment::where('status', 'echoue')
+                ->whereNotNull('cancelled_at')
+                ->where('cancelled_at', '>=', $since)
+                ->count()
+            : 0,
+
+        'revoked_documents' => Schema::hasTable('official_documents')
+            ? OfficialDocument::where('status', 'revoque')
+                ->where('updated_at', '>=', $since)
+                ->count()
+            : 0,
+
+        'critical_errors' => DB::table('audit_logs')
+            ->where('created_at', '>=', $since)
+            ->where(function ($query) {
+                $query
+                    ->whereRaw('LOWER(action) LIKE ?', ['%erreur critique%'])
+                    ->orWhereRaw('LOWER(action) LIKE ?', ['%exception%']);
+            })
+            ->count(),
+    ];
+}
+
+
 }

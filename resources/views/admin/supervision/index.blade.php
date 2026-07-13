@@ -20,6 +20,34 @@
                 d’Administration Électronique.
             </p>
         </div>
+		<div class="supervision-toolbar">
+    <a
+        href="{{ route('admin.supervision.report.pdf') }}"
+        class="supervision-export-button"
+    >
+        📄 Exporter PDF
+    </a>
+
+    <a
+        href="{{ route('admin.supervision.report.excel') }}"
+        class="supervision-export-button supervision-export-excel"
+    >
+        📊 Exporter Excel
+    </a>
+
+    <button
+        type="button"
+        id="refreshDashboard"
+        class="supervision-refresh-button"
+    >
+        🔄 Actualiser
+    </button>
+
+    <span class="supervision-live-indicator">
+        <span></span>
+        Actualisation toutes les 30 secondes
+    </span>
+</div>
 
         <div class="supervision-date">
             <span>Dernière actualisation</span>
@@ -258,7 +286,140 @@
         </section>
 
     </div>
+<div class="supervision-grid supervision-grid-two">
 
+    <section class="supervision-panel">
+        <div class="supervision-panel-heading">
+            <div>
+                <h2>Indice national de performance</h2>
+                <p>
+                    Validation, paiements, documents et taux de rejet.
+                </p>
+            </div>
+            <span>🎯</span>
+        </div>
+
+        <div class="national-score-layout">
+            <div
+                class="national-score-circle"
+                style="--score: {{ $dashboard['nationalScore']['score'] }}"
+            >
+                <strong>
+                    {{ $dashboard['nationalScore']['score'] }} %
+                </strong>
+
+                <span>{{ $dashboard['nationalScore']['label'] }}</span>
+            </div>
+
+            <div class="national-score-details">
+                <div>
+                    <span>Validation</span>
+                    <strong>
+                        {{ $dashboard['nationalScore']['validation_rate'] }} %
+                    </strong>
+                </div>
+
+                <div>
+                    <span>Paiement</span>
+                    <strong>
+                        {{ $dashboard['nationalScore']['payment_rate'] }} %
+                    </strong>
+                </div>
+
+                <div>
+                    <span>Documents produits</span>
+                    <strong>
+                        {{ $dashboard['nationalScore']['document_rate'] }} %
+                    </strong>
+                </div>
+
+                <div>
+                    <span>Rejet</span>
+                    <strong>
+                        {{ $dashboard['nationalScore']['rejection_rate'] }} %
+                    </strong>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="supervision-panel">
+        <div class="supervision-panel-heading">
+            <div>
+                <h2>Objectifs mensuels</h2>
+                <p>Suivi des cibles nationales du mois.</p>
+            </div>
+            <span>🏁</span>
+        </div>
+
+        <div class="objective-item">
+            <div class="objective-header">
+                <span>Dossiers déposés</span>
+
+                <strong>
+                    {{ $dashboard['monthlyObjective']['applications']['actual'] }}
+                    /
+                    {{ $dashboard['monthlyObjective']['applications']['target'] }}
+                </strong>
+            </div>
+
+            <div class="objective-track">
+                <div
+                    class="objective-value"
+                    style="width: {{
+                        $dashboard['monthlyObjective']['applications']['percentage']
+                    }}%"
+                ></div>
+            </div>
+        </div>
+
+        <div class="objective-item">
+            <div class="objective-header">
+                <span>Recettes nationales</span>
+
+                <strong>
+                    {{
+                        number_format(
+                            $dashboard['monthlyObjective']['revenue']['actual'],
+                            0,
+                            ',',
+                            ' '
+                        )
+                    }}
+                    /
+                    {{
+                        number_format(
+                            $dashboard['monthlyObjective']['revenue']['target'],
+                            0,
+                            ',',
+                            ' '
+                        )
+                    }}
+                    FCFA
+                </strong>
+            </div>
+
+            <div class="objective-track">
+                <div
+                    class="objective-value objective-value-revenue"
+                    style="width: {{
+                        $dashboard['monthlyObjective']['revenue']['percentage']
+                    }}%"
+                ></div>
+            </div>
+        </div>
+
+        <div class="average-processing-card">
+            <span>Temps moyen de traitement</span>
+
+            <strong>
+                {{ $dashboard['averageProcessing']['global_days'] }}
+                jour(s)
+            </strong>
+        </div>
+    </section>
+
+</div>
     {{-- =====================================================
          ALERTES
          ===================================================== --}}
@@ -391,6 +552,72 @@
                 </tbody>
 
             </table>
+			<div class="supervision-grid supervision-grid-two">
+
+    <section class="supervision-panel">
+        <div class="supervision-panel-heading">
+            <div>
+                <h2>Top des démarches</h2>
+                <p>Services les plus sollicités.</p>
+            </div>
+            <span>🏆</span>
+        </div>
+
+        <div class="procedure-ranking">
+            @forelse($dashboard['topProcedures'] as $procedure)
+                <article>
+                    <span class="procedure-rank">
+                        {{ $loop->iteration }}
+                    </span>
+
+                    <div>
+                        <strong>{{ $procedure->title }}</strong>
+
+                        <small>
+                            {{ $procedure->ministry->name ?? '-' }}
+                        </small>
+                    </div>
+
+                    <span class="procedure-total">
+                        {{ $procedure->applications_count }}
+                    </span>
+                </article>
+            @empty
+                <p>Aucune donnée disponible.</p>
+            @endforelse
+        </div>
+    </section>
+
+    <section class="supervision-panel">
+        <div class="supervision-panel-heading">
+            <div>
+                <h2>Activité des 35 derniers jours</h2>
+                <p>Nombre quotidien de nouvelles demandes.</p>
+            </div>
+            <span>🗓️</span>
+        </div>
+
+        <div class="activity-heatmap">
+            @foreach($dashboard['activityHeatmap'] as $day)
+                <span
+                    class="heatmap-cell heatmap-level-{{ $day['level'] }}"
+                    title="{{ $day['label'] }} : {{ $day['total'] }} demande(s)"
+                ></span>
+            @endforeach
+        </div>
+
+        <div class="heatmap-legend">
+            <span>Moins</span>
+            <i class="heatmap-level-0"></i>
+            <i class="heatmap-level-1"></i>
+            <i class="heatmap-level-2"></i>
+            <i class="heatmap-level-3"></i>
+            <i class="heatmap-level-4"></i>
+            <span>Plus</span>
+        </div>
+    </section>
+
+</div>
 
         </div>
 
@@ -531,6 +758,88 @@
 
     </div>
 
+
+<div class="supervision-grid supervision-grid-two">
+
+    <section class="supervision-panel">
+        <div class="supervision-panel-heading">
+            <div>
+                <h2>Activité récente</h2>
+                <p>Dernières opérations importantes.</p>
+            </div>
+            <span>🕒</span>
+        </div>
+
+        <div class="activity-timeline">
+            @forelse($dashboard['recentActivity'] as $activity)
+                <article>
+                    <time>
+                        {{
+                            \Carbon\Carbon::parse($activity->created_at)
+                                ->format('H:i')
+                        }}
+                    </time>
+
+                    <span class="activity-dot"></span>
+
+                    <div>
+                        <strong>{{ $activity->action }}</strong>
+
+                        <small>
+                            {{ $activity->user_name ?? 'Système' }}
+                            @if($activity->entity)
+                                — {{ $activity->entity }}
+                            @endif
+                        </small>
+                    </div>
+                </article>
+            @empty
+                <p>Aucune activité récente.</p>
+            @endforelse
+        </div>
+    </section>
+
+    <section class="supervision-panel">
+        <div class="supervision-panel-heading">
+            <div>
+                <h2>Audit de sécurité</h2>
+                <p>Événements sensibles des trente derniers jours.</p>
+            </div>
+            <span>🛡️</span>
+        </div>
+
+        <div class="security-audit-grid">
+            <article>
+                <span>Connexions échouées</span>
+                <strong>
+                    {{ $dashboard['securityAudit']['failed_logins'] }}
+                </strong>
+            </article>
+
+            <article>
+                <span>Paiements annulés</span>
+                <strong>
+                    {{ $dashboard['securityAudit']['cancelled_payments'] }}
+                </strong>
+            </article>
+
+            <article>
+                <span>Documents révoqués</span>
+                <strong>
+                    {{ $dashboard['securityAudit']['revoked_documents'] }}
+                </strong>
+            </article>
+
+            <article>
+                <span>Erreurs critiques</span>
+                <strong>
+                    {{ $dashboard['securityAudit']['critical_errors'] }}
+                </strong>
+            </article>
+        </div>
+    </section>
+
+</div>
     {{-- =====================================================
          SANTÉ DE LA PLATEFORME
          ===================================================== --}}
@@ -705,5 +1014,52 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     );
 });
+
+const refreshUrl = @json(route('admin.supervision.data'));
+
+async function refreshNationalDashboard() {
+    const button = document.getElementById('refreshDashboard');
+
+    try {
+        if (button) {
+            button.disabled = true;
+            button.textContent = '⏳ Actualisation...';
+        }
+
+        const response = await fetch(refreshUrl, {
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin'
+        });
+
+        if (!response.ok) {
+            throw new Error('Actualisation impossible');
+        }
+
+        /*
+         * Rechargement propre afin de synchroniser aussi les tableaux
+         * et les graphiques Chart.js.
+         */
+        window.location.reload();
+    } catch (error) {
+        console.error(error);
+
+        if (button) {
+            button.disabled = false;
+            button.textContent = '⚠️ Réessayer';
+        }
+    }
+}
+
+document
+    .getElementById('refreshDashboard')
+    ?.addEventListener('click', refreshNationalDashboard);
+
+window.setTimeout(
+    refreshNationalDashboard,
+    30000
+);
 </script>
 @endpush

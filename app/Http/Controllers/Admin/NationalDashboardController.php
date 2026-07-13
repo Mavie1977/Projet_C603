@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Services\NationalDashboardService;
 
+
 class NationalDashboardController extends Controller
 {
     public function index(
@@ -17,4 +18,12 @@ class NationalDashboardController extends Controller
             compact('dashboard')
         );
     }
+	
+	public function data(
+    NationalDashboardService $dashboardService
+) {
+    return response()->json(
+        $dashboardService->getDashboardData()
+    );
+}
 }
