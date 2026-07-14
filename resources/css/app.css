@@ -5272,8 +5272,13 @@ a.executive-stat-card:hover {
 
 .announcements-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 22px;
+    justify-content: center;
+}
+
+.announcement-card {
+    width: 100%;
 }
 
 .announcement-card {
