@@ -2,46 +2,38 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Ministry extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
-        'name',
-        'slug',
-        'description',
-        'active',
-    ];
+    'name',
+    'slug',
+    'code',
+    'description',
+    'email',
+    'phone',
+    'active',
+];
 
-    protected $casts = [
-        'active' => 'boolean',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'active' => 'boolean',
+        ];
+    }
 
-    public function procedures()
+    public function procedures(): HasMany
     {
         return $this->hasMany(Procedure::class);
     }
 
-    public function departments()
+    public function users(): HasMany
     {
-        return $this->hasMany(Department::class);
+        return $this->hasMany(User::class);
     }
-	
-	public function users(): HasMany
-{
-    return $this->hasMany(User::class);
-}
-
-public function agents(): HasMany
-{
-    return $this->hasMany(User::class)
-        ->where('role', User::ROLE_AGENT);
-}
-
-public function responsables(): HasMany
-{
-    return $this->hasMany(User::class)
-        ->where('role', User::ROLE_RESPONSABLE);
-}
 }

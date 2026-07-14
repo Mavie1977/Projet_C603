@@ -56,6 +56,12 @@
             <a href="{{ route('admin.ministries.index') }}" class="btn-rca-primary">
                 Retour
             </a>
+			<a
+    href="{{ route('admin.ministries.edit', $ministry) }}"
+    class="btn-rca-primary"
+>
+    ✏️ Modifier le ministère
+</a>
         </form>
     </div>
 

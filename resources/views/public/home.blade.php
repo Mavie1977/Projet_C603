@@ -26,9 +26,12 @@
             <a href="{{ route('services') }}" class="btn btn-primary-rca me-2">
                 Commencer une démarche
             </a>
-            <a href="#" class="btn btn-light-rca">
-                Suivre une demande
-            </a>
+            <a
+              href="{{ route('public.tracking.form') }}"
+                class="btn btn-light"
+            >
+                   Suivre une demande
+           </a>
         </div>
     </div>
 </section>
@@ -40,7 +43,12 @@
             <span class="mx-2">|</span>
             La digitalisation des services publics, un engagement pour la transparence et la proximité.
         </div>
-        <a href="#" class="text-decoration-none">Voir toutes les annonces →</a>
+        <a
+          href="{{ route('public.announcements.index') }}"
+          class="announcements-link"
+      >
+           Voir toutes les annonces →
+       </a>
     </div>
 </div>
 

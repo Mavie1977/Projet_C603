@@ -152,40 +152,43 @@
 
         </div>
 
-        <form
-            method="POST"
-            action="{{ route('admin.procedures.toggle',$procedure) }}">
+        <div class="form-actions">
 
-            @csrf
+    <a
+        href="{{ route('admin.procedures.edit', $procedure) }}"
+        class="btn-rca-primary"
+    >
+        ✏️ Modifier la démarche
+    </a>
 
-            <div class="form-actions">
+    <form
+        method="POST"
+        action="{{ route(
+            'admin.procedures.toggle',
+            $procedure
+        ) }}"
+    >
+        @csrf
+        @method('PATCH')
 
-                <button
-                    type="submit"
-                    class="btn-rca-secondary">
+        <button
+            type="submit"
+            class="btn-rca-warning"
+        >
+            {{ $procedure->active
+                ? 'Désactiver la démarche'
+                : 'Activer la démarche' }}
+        </button>
+    </form>
 
-                    @if($procedure->active)
+    <a
+        href="{{ route('admin.procedures.index') }}"
+        class="btn-rca-secondary"
+    >
+        Retour à la liste
+    </a>
 
-                        Désactiver la démarche
-
-                    @else
-
-                        Réactiver la démarche
-
-                    @endif
-
-                </button>
-
-                <a
-                    href="{{ route('admin.procedures.index') }}"
-                    class="btn-rca-primary">
-
-                    Retour à la liste
-
-                </a>
-
-            </div>
-
+</div>
         </form>
 
     </div>

@@ -4,48 +4,70 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PublicController;
-use App\Http\Controllers\Admin\NationalDashboardController;
-use App\Http\Controllers\Admin\SearchController;
-use App\Http\Controllers\Admin\NationalReportController;
-use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\VerificationController;
+
 use App\Http\Controllers\CitizenController as CitizenDashboardController;
 use App\Http\Controllers\Citizen\ApplicationController as CitizenApplicationController;
+use App\Http\Controllers\Citizen\PaymentController as CitizenPaymentController;
+use App\Http\Controllers\Citizen\OfficialDocumentController as CitizenOfficialDocumentController;
 
 use App\Http\Controllers\Agent\DashboardController as AgentDashboardController;
 use App\Http\Controllers\Agent\ApplicationController as AgentApplicationController;
+use App\Http\Controllers\Agent\DocumentController as AgentDocumentController;
+use App\Http\Controllers\Agent\OfficialDocumentController as AgentOfficialDocumentController;
 
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\SearchController as AdminSearchController;
+use App\Http\Controllers\Admin\NationalDashboardController;
+use App\Http\Controllers\Admin\NationalReportController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\CitizenController as AdminCitizenController;
 use App\Http\Controllers\Admin\AgentController as AdminAgentController;
-use App\Http\Controllers\Admin\MinistryController as AdminMinistryController;
-use App\Http\Controllers\Admin\ProcedureController as AdminProcedureController;
+use App\Http\Controllers\Admin\MinistryController;
+use App\Http\Controllers\Admin\ProcedureController;
 use App\Http\Controllers\Admin\AnnouncementController as AdminAnnouncementController;
 use App\Http\Controllers\Admin\SettingController as AdminSettingController;
 use App\Http\Controllers\Admin\AuditController as AdminAuditController;
-use App\Http\Controllers\Admin\SearchController as AdminSearchController;
-use App\Http\Controllers\Agent\DocumentController as AgentDocumentController;
-use App\Http\Controllers\Citizen\PaymentController as CitizenPaymentController;
-use App\Http\Controllers\Agent\OfficialDocumentController as AgentOfficialDocumentController;
-use App\Http\Controllers\Citizen\OfficialDocumentController as CitizenOfficialDocumentController;
-use App\Http\Controllers\VerificationController;
+use App\Http\Controllers\Public\TrackingController;
+use App\Http\Controllers\Public\AnnouncementController as PublicAnnouncementController;
 
-
+/*
+|--------------------------------------------------------------------------
+| Suivi public des demandes
+|--------------------------------------------------------------------------
+*/
 
 Route::get(
-    '/verification/document/{officialDocument}',
-    [VerificationController::class, 'show']
-)
-    ->middleware('signed')
-    ->name('verification.documents.show');
-	Route::get(
-    '/verification',
-    [VerificationController::class, 'index']
-)->name('verification.index');
+    '/suivre-une-demande',
+    [TrackingController::class, 'showForm']
+)->name('public.tracking.form');
 
 Route::post(
-    '/verification',
-    [VerificationController::class, 'search']
-)->name('verification.search');
+    '/suivre-une-demande',
+    [TrackingController::class, 'search']
+)->name('public.tracking.search');
+
+/*
+|--------------------------------------------------------------------------
+| Annonces publiques
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/annonces',
+    [PublicAnnouncementController::class, 'index']
+)->name('public.announcements.index');
+/*
+|--------------------------------------------------------------------------
+| Vérification publique des documents officiels
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/verification', [VerificationController::class, 'index'])
+    ->name('verification.index');
+
+Route::post('/verification', [VerificationController::class, 'search'])
+    ->name('verification.search');
 
 Route::get(
     '/verification/resultat/{officialDocument}',
@@ -58,10 +80,10 @@ Route::get(
 )
     ->middleware('signed')
     ->name('verification.documents.show');
-	
+
 /*
 |--------------------------------------------------------------------------
-| Public
+| Portail public
 |--------------------------------------------------------------------------
 */
 
@@ -78,7 +100,7 @@ Route::get('/contact', [PublicController::class, 'contact'])
 
 /*
 |--------------------------------------------------------------------------
-| Authentication
+| Authentification
 |--------------------------------------------------------------------------
 */
 
@@ -104,7 +126,7 @@ Route::get('/dashboard', [AuthController::class, 'redirectDashboard'])
 
 /*
 |--------------------------------------------------------------------------
-| Citizen
+| Espace citoyen
 |--------------------------------------------------------------------------
 */
 
@@ -131,7 +153,8 @@ Route::prefix('citoyen')
             '/demande',
             [CitizenApplicationController::class, 'store']
         )->name('application.store');
-		Route::get(
+
+        Route::get(
             '/paiements',
             [CitizenPaymentController::class, 'index']
         )->name('payments.index');
@@ -139,48 +162,37 @@ Route::prefix('citoyen')
         Route::get(
             '/demandes/{application}/paiement',
             [CitizenPaymentController::class, 'create']
-            )->name('payments.create');
+        )->name('payments.create');
 
-       Route::post(
-           '/demandes/{application}/paiement',
-           [CitizenPaymentController::class, 'store']
-           )->name('payments.store');
+        Route::post(
+            '/demandes/{application}/paiement',
+            [CitizenPaymentController::class, 'store']
+        )->name('payments.store');
 
-      Route::get(
-          '/paiements/{payment}',
-          [CitizenPaymentController::class, 'show']
-          )->name('payments.show');
+        Route::get(
+            '/paiements/{payment}',
+            [CitizenPaymentController::class, 'show']
+        )->name('payments.show');
 
-     Route::post(
-         '/paiements/{payment}/confirmer',
-         [CitizenPaymentController::class, 'confirm']
-         )->name('payments.confirm');
+        Route::post(
+            '/paiements/{payment}/confirmer',
+            [CitizenPaymentController::class, 'confirm']
+        )->name('payments.confirm');
 
-     Route::post(
-         '/paiements/{payment}/annuler',
-         [CitizenPaymentController::class, 'cancel']
-         )->name('payments.cancel');
-		 Route::get(
-             '/documents-officiels/{officialDocument}/telecharger',
-             [CitizenOfficialDocumentController::class, 'download']
-             )->name('official-documents.download');
-			 
-			 Route::prefix('citoyen')
-                   ->name('citizen.')
-                   ->middleware(['auth', 'role:citoyen'])
-                   ->group(function () {
+        Route::post(
+            '/paiements/{payment}/annuler',
+            [CitizenPaymentController::class, 'cancel']
+        )->name('payments.cancel');
 
         Route::get(
             '/documents-officiels/{officialDocument}/telecharger',
             [CitizenOfficialDocumentController::class, 'download']
         )->name('official-documents.download');
-    
     });
-	});
 
 /*
 |--------------------------------------------------------------------------
-| Agent
+| Espace agent / responsable
 |--------------------------------------------------------------------------
 */
 
@@ -188,26 +200,10 @@ Route::prefix('agent')
     ->name('agent.')
     ->middleware(['auth', 'role:agent,responsable'])
     ->group(function () {
-	
         Route::get(
             '/dashboard',
             [AgentDashboardController::class, 'index']
-            )->name('dashboard');
-			
-		Route::get(
-            '/documents/{document}/voir',
-            [AgentDocumentController::class, 'show']
-            )->name('documents.show');
-
-      Route::get(
-          '/documents/{document}/telecharger',
-          [AgentDocumentController::class, 'download']
-          )->name('documents.download');
-
-     Route::patch(
-         '/documents/{document}/statut',
-         [AgentDocumentController::class, 'updateStatus']
-         )->name('documents.status');
+        )->name('dashboard');
 
         Route::get(
             '/demandes',
@@ -224,30 +220,36 @@ Route::prefix('agent')
             '/demandes/{application}/statut',
             [AgentApplicationController::class, 'updateStatus']
         )->name('applications.status');
-		Route::post(
+
+        Route::get(
+            '/documents/{document}/voir',
+            [AgentDocumentController::class, 'show']
+        )->name('documents.show');
+
+        Route::get(
+            '/documents/{document}/telecharger',
+            [AgentDocumentController::class, 'download']
+        )->name('documents.download');
+
+        Route::patch(
+            '/documents/{document}/statut',
+            [AgentDocumentController::class, 'updateStatus']
+        )->name('documents.status');
+
+        Route::post(
             '/demandes/{application}/document-officiel',
             [AgentOfficialDocumentController::class, 'store']
-            )->name('official-documents.store');
-
-       Route::get(
-           '/documents-officiels/{officialDocument}/telecharger',
-           [AgentOfficialDocumentController::class, 'download']
-           )->name('official-documents.download');
-
-      Route::prefix('agent')
-           ->name('agent.')
-           ->middleware(['auth', 'role:agent,responsable'])
-           ->group(function () {
+        )->name('official-documents.store');
 
         Route::get(
             '/documents-officiels/{officialDocument}/telecharger',
             [AgentOfficialDocumentController::class, 'download']
         )->name('official-documents.download');
     });
-});
+
 /*
 |--------------------------------------------------------------------------
-| Administration
+| Administration nationale — accès administrateur uniquement
 |--------------------------------------------------------------------------
 */
 
@@ -255,7 +257,6 @@ Route::prefix('admin')
     ->name('admin.')
     ->middleware(['auth', 'role:admin'])
     ->group(function () {
-
         Route::get(
             '/dashboard',
             [AdminDashboardController::class, 'index']
@@ -263,8 +264,13 @@ Route::prefix('admin')
 
         Route::get(
             '/recherche',
-            [SearchController::class, 'index']
+            [AdminSearchController::class, 'index']
         )->name('search.index');
+
+        Route::get(
+            '/demandes/{application}',
+            [AdminSearchController::class, 'showApplication']
+        )->name('applications.show');
 
         Route::get(
             '/journal',
@@ -276,56 +282,22 @@ Route::prefix('admin')
             [NationalDashboardController::class, 'index']
         )->name('supervision.index');
 
+        Route::get(
+            '/supervision/data',
+            [NationalDashboardController::class, 'data']
+        )->name('supervision.data');
 
-       Route::get(
-        '/supervision/data',
-        [NationalDashboardController::class, 'data']
-       )->name('supervision.data');
-	   
-	   Route::get(
-        '/supervision/rapport/pdf',
-        [NationalReportController::class, 'pdf']
+        Route::get(
+            '/supervision/rapport/pdf',
+            [NationalReportController::class, 'pdf']
         )->name('supervision.report.pdf');
 
-     Route::get(
-        '/supervision/rapport/excel',
-        [NationalReportController::class, 'excel']
+        Route::get(
+            '/supervision/rapport/excel',
+            [NationalReportController::class, 'excel']
         )->name('supervision.report.excel');
-		
-    Route::resource('utilisateurs', UserController::class)
-    ->parameters([
-        'utilisateurs' => 'user',
-    ])
-    ->names('users');
 
-    Route::patch(
-    '/utilisateurs/{user}/activation',
-    [UserController::class, 'toggle']
-   )->name('users.toggle');
-
-   Route::post(
-    '/utilisateurs/{user}/mot-de-passe',
-    [UserController::class, 'resetPassword']
-    )->name('users.reset-password');
-
-    });
-	
-
-		Route::get(
-            '/recherche',
-            [AdminSearchController::class, 'index']
-       )->name('search.index');
-	   
-	   Route::prefix('admin')
-              ->name('admin.')
-              ->middleware(['auth', 'role:admin'])
-              ->group(function () {
-	   
-	   Route::get(
-           '/demandes/{application}',
-            [AdminSearchController::class, 'showApplication']
-      )->name('applications.show');
-
+        /* Citoyens */
         Route::get(
             '/citoyens',
             [AdminCitizenController::class, 'index']
@@ -341,6 +313,7 @@ Route::prefix('admin')
             [AdminCitizenController::class, 'toggle']
         )->name('citizens.toggle');
 
+        /* Agents */
         Route::get(
             '/agents',
             [AdminAgentController::class, 'index']
@@ -366,56 +339,37 @@ Route::prefix('admin')
             [AdminAgentController::class, 'toggle']
         )->name('agents.toggle');
 
-        Route::get(
-            '/ministeres',
-            [AdminMinistryController::class, 'index']
-        )->name('ministries.index');
-
-        Route::get(
-            '/ministeres/create',
-            [AdminMinistryController::class, 'create']
-        )->name('ministries.create');
-
-        Route::post(
-            '/ministeres',
-            [AdminMinistryController::class, 'store']
-        )->name('ministries.store');
-
-        Route::get(
-            '/ministeres/{ministry}',
-            [AdminMinistryController::class, 'show']
-        )->name('ministries.show');
-
-        Route::post(
-            '/ministeres/{ministry}/toggle',
-            [AdminMinistryController::class, 'toggle']
+        /* Ministères */
+        Route::patch(
+            '/ministeres/{ministry}/activation',
+            [MinistryController::class, 'toggle']
         )->name('ministries.toggle');
 
-        Route::get(
-            '/demarches',
-            [AdminProcedureController::class, 'index']
-        )->name('procedures.index');
+        Route::resource(
+            'ministeres',
+            MinistryController::class
+        )
+            ->parameters([
+                'ministeres' => 'ministry',
+            ])
+            ->names('ministries');
 
-        Route::get(
-            '/demarches/create',
-            [AdminProcedureController::class, 'create']
-        )->name('procedures.create');
-
-        Route::post(
-            '/demarches',
-            [AdminProcedureController::class, 'store']
-        )->name('procedures.store');
-
-        Route::get(
-            '/demarches/{procedure}',
-            [AdminProcedureController::class, 'show']
-        )->name('procedures.show');
-
-        Route::post(
-            '/demarches/{procedure}/toggle',
-            [AdminProcedureController::class, 'toggle']
+        /* Démarches / services */
+        Route::patch(
+            '/demarches/{procedure}/activation',
+            [ProcedureController::class, 'toggle']
         )->name('procedures.toggle');
 
+        Route::resource(
+            'demarches',
+            ProcedureController::class
+        )
+            ->parameters([
+                'demarches' => 'procedure',
+            ])
+            ->names('procedures');
+
+        /* Annonces */
         Route::get(
             '/annonces',
             [AdminAnnouncementController::class, 'index']
@@ -441,6 +395,7 @@ Route::prefix('admin')
             [AdminAnnouncementController::class, 'toggle']
         )->name('announcements.toggle');
 
+        /* Paramètres */
         Route::get(
             '/parametres',
             [AdminSettingController::class, 'index']
@@ -450,6 +405,37 @@ Route::prefix('admin')
             '/parametres',
             [AdminSettingController::class, 'update']
         )->name('settings.update');
+    });
 
-		
+/*
+|--------------------------------------------------------------------------
+| Gestion des utilisateurs — administrateur et responsable
+|--------------------------------------------------------------------------
+|
+| Le responsable reste limité aux agents de son ministère par UserPolicy.
+|
+*/
+
+Route::prefix('admin')
+    ->name('admin.')
+    ->middleware(['auth', 'role:admin,responsable'])
+    ->group(function () {
+        Route::resource(
+            'utilisateurs',
+            UserController::class
+        )
+            ->parameters([
+                'utilisateurs' => 'user',
+            ])
+            ->names('users');
+
+        Route::patch(
+            '/utilisateurs/{user}/activation',
+            [UserController::class, 'toggle']
+        )->name('users.toggle');
+
+        Route::post(
+            '/utilisateurs/{user}/mot-de-passe',
+            [UserController::class, 'resetPassword']
+        )->name('users.reset-password');
     });
